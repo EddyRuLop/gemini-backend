@@ -6,4 +6,5 @@ export class BasicPromptDto {
     @IsNotEmpty()
     prompt: string;
     
+    
 }
