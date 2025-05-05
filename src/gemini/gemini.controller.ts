@@ -14,6 +14,7 @@ export class GeminiController {
   }
 
   @Post('basic-prompt-stream')
+  @UseInterceptors(FileInterceptor('file'))
   async basicPromptStream(
     @Body() basicPromptDto: BasicPromptDto,
     @Res() res: Response,
