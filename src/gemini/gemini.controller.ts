@@ -74,6 +74,18 @@ let resultText = '';
 
     const data = await this.outputStreamResponse(res, stream);
 
+    const geminiMessage = {
+      role: 'model',
+      parts: [{ text: data }],
+    };
+    const userMessage = {
+      role: 'user',
+      parts: [{ text: chatPromptDto.prompt }],
+    };
+
+    this.geminiService.saveMessage(chatPromptDto.chatId, geminiMessage);
+    this.geminiService.saveMessage(chatPromptDto.chatId, userMessage);
+
 
     console.log({text: chatPromptDto.prompt});
     console.log(data);
