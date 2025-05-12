@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
+  Param,
   Post,
   Res,
   UploadedFiles,
@@ -13,21 +15,22 @@ import { Response } from 'express';
 
 import { GeminiService } from './gemini.service';
 import { BasicPromptDto } from './dtos/basic-prompt.dto';
-import { GenerateContentResponse } from '@google/genai';
 import { ChatPromptDto } from './dtos/chat-prompt.dto';
+import { GenerateContentResponse } from '@google/genai';
 
 @Controller('gemini')
 export class GeminiController {
   constructor(private readonly geminiService: GeminiService) {}
 
-
-  async outputStreamResponse(res: Response, stream: AsyncGenerator<GenerateContentResponse, any, any> ){
+  async outputStreamResponse(
+    res: Response,
+    stream: AsyncGenerator<GenerateContentResponse, any, any>,
+  ) {
     // res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Type', 'text/plain');
     res.status(HttpStatus.OK);
 
-
-let resultText = '';
+    let resultText = '';
     for await (const chunk of stream) {
       const piece = chunk.text;
       resultText += piece;
@@ -52,11 +55,8 @@ let resultText = '';
   ) {
     basicPromptDto.files = files;
 
-    console.log(files);
-
     const stream = await this.geminiService.basicPromptStream(basicPromptDto);
     void this.outputStreamResponse(res, stream);
-   
   }
 
   @Post('chat-stream')
@@ -68,10 +68,7 @@ let resultText = '';
   ) {
     chatPromptDto.files = files;
 
-    console.log(files);
-
     const stream = await this.geminiService.chatStream(chatPromptDto);
-
     const data = await this.outputStreamResponse(res, stream);
 
     const geminiMessage = {
@@ -83,11 +80,15 @@ let resultText = '';
       parts: [{ text: chatPromptDto.prompt }],
     };
 
-    this.geminiService.saveMessage(chatPromptDto.chatId, geminiMessage);
     this.geminiService.saveMessage(chatPromptDto.chatId, userMessage);
+    this.geminiService.saveMessage(chatPromptDto.chatId, geminiMessage);
+  }
 
-
-    console.log({text: chatPromptDto.prompt});
-    console.log(data);
+  @Get('chat-history/:chatId')
+  getChatHistory(@Param('chatId') chatId: string) {
+    return this.geminiService.getChatHistory(chatId).map((message) => ({
+      role: message.role,
+      parts: message.parts?.map((part) => part.text).join(''),
+    }));
   }
 }
