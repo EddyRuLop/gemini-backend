@@ -17,7 +17,7 @@ export const basicPromptUseCase = async (
       model = "gemini-2.0-flash",
       systemInstruction ="Responde unicamente en español, en formato markdown. Usa negritas de esta froma __. Usa el sistema métrico decimal.",
 
-    } = options ?? {};
+   } = options ?? {};
 
     const response = await ai.models.generateContent({
         model: model ,
